@@ -1,0 +1,13 @@
+{
+  "name": "aoc2018-example",
+  "version": "1.0.0",
+  "description": "Advent of Code 2018 example application",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.19.0"
+  }
+}
