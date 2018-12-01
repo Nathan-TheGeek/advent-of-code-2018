@@ -1,0 +1,13 @@
+{
+  "name": "aoc2018-01-1",
+  "version": "1.0.0",
+  "description": "Advent of Code 2018 Dec 1st Problem 1",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "fs": "0.0.1-security"
+  }
+}
