@@ -16,25 +16,42 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
         addSorted(log, logEntry);
     }
     let beginShiftMessage = /Guard \#(\d*) begins shift/;
-    let shifts = [];
-    let currentShift = null;
+    let guards = {};
+    let currentGuard = null;
+    let currentShiftId = null;
+    let lastAsleep = -1;
     for(let i=0; i<log.length; i++){
         let logEntry = log[i];
         let results = beginShiftMessage.exec(logEntry.message);
-        if(results){ // new shift.
-            if(currentShift != null){
-                shifts.push(currentShift);
+        // let 
+        //console.log(shiftId);
+        if (results) { // new shift.
+            let currentGuardId = +(results[1]);
+            currentShiftId = "shift_" + currentGuardId + "_" + i;
+            currentGuard = guards['guard_' + currentGuardId];
+            lastAsleep = -1;
+            if (currentGuard === undefined) {
+                currentGuard = {
+                    guardId: currentGuardId,
+                    shifts: {}
+                };
+                guards['guard_' + currentGuardId] = currentGuard;
             }
-            currentShift = {
-                guardId: results[1],
-                log: []
-            };
-            currentShift.log.push(logEntry);
+            currentGuard.shifts[currentShiftId] = [];
+            for(let j=0; j<60; j++) {
+                currentGuard.shifts[currentShiftId][j] = ' ';
+            }
         } else {
-            currentShift.log.push(logEntry);
+            let minute = +(logEntry.providedDateTime.substring(14, 16));
+            if (logEntry.message === "falls asleep"){
+                lastAsleep = minute;
+            } else if (logEntry.message === "wakes up") {
+                for(let j=lastAsleep; j<minute; j++){
+                    currentGuard.shifts[currentShiftId][j] = "X";
+                }
+            }
         }
     }
-    console.log(shifts);
 });
 
 function addSorted(array, log) {
