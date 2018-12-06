@@ -33,8 +33,13 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
             if (currentGuard === undefined) {
                 currentGuard = {
                     guardId: currentGuardId,
+                    totalMinAsleep: 0,
+                    minuteAgg: [],
                     shifts: {}
                 };
+                for(let j=0; j<60; j++) {
+                    currentGuard.minuteAgg[j] = 0;
+                }
                 guards['guard_' + currentGuardId] = currentGuard;
             }
             currentGuard.shifts[currentShiftId] = [];
@@ -48,10 +53,35 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
             } else if (logEntry.message === "wakes up") {
                 for(let j=lastAsleep; j<minute; j++){
                     currentGuard.shifts[currentShiftId][j] = "X";
+                    currentGuard.totalMinAsleep++;
+                    currentGuard.minuteAgg[j] = currentGuard.minuteAgg[j] + 1;
                 }
             }
         }
     }
+    let maxAsleepTime = 0;
+    let maxAsleepId = 0;
+    for (let guardId in guards) {
+        if (guards.hasOwnProperty(guardId)) {
+            const guard = guards[guardId];
+            if(guard.totalMinAsleep > maxAsleepTime) {
+                maxAsleepTime = guard.totalMinAsleep;
+                maxAsleepId = guard.guardId;
+            }
+            // to print graph for each guard.
+            // printGuardGraph(guard);
+        }
+    }
+    let sleepiestGuard = guards['guard_' + maxAsleepId];
+    let mostCommonMinute = 0;
+    for(let i=0; i<sleepiestGuard.minuteAgg.length; i++) {
+        if (sleepiestGuard.minuteAgg[i] > sleepiestGuard.minuteAgg[mostCommonMinute]) {
+            mostCommonMinute = i;
+        }
+    }
+    // printGuardGraph(sleepiestGuard);
+
+    console.log("Sleepiest Guard:" + maxAsleepId + " Sleepiest Time:" + mostCommonMinute + " Result:[" + (maxAsleepId * mostCommonMinute) + "]");
 });
 
 function addSorted(array, log) {
@@ -72,4 +102,30 @@ function addSorted(array, log) {
     } else {
         array.push(log);
     }
+}
+
+function printGuardGraph(guard) {
+    console.log("Guard #" + guard.guardId);
+    let First = "";
+    let Second = "";
+    for(var i=0; i<60; i++){
+        First += Math.floor(i/10).toString();
+        Second += (i%10).toString();
+    }
+    console.log(First);
+    console.log(Second);
+    for(let shiftId in guard.shifts) {
+        let line = "";
+        if(guard.shifts.hasOwnProperty(shiftId)) {
+            for(var i=0; i<60; i++) {
+                line += guard.shifts[shiftId][i];
+            }
+        }
+        console.log(line);
+    }
+    let hr = "";
+    for(let i=0;i<80;i++) {
+        hr += "-";
+    }
+    console.log(hr);
 }
