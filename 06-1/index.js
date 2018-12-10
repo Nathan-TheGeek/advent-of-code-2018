@@ -4,15 +4,15 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
     if (err) throw err;
     let lines = data.split("\n");
     let cordPat = /(\d*)\,\s(\d*)/;
-    let cordinates = [];
+    let coordinates = [];
     let maxX = 0;
     let maxY = 0;
     for(let i=0; i<lines.length; i++){
         let line = lines[i];
         let parsed = cordPat.exec(line);
-        let x = parsed[1];
-        let y = parsed[2];
-        cordinates.push({'x':x,'y':y});
+        let x = parseInt(parsed[1]);
+        let y = parseInt(parsed[2]);
+        coordinates.push({'x':x,'y':y});
         if(x > maxX) {
             maxX = x;
         }
@@ -20,48 +20,55 @@ fs.readFile('input.txt', 'utf8', (err, data) => {
             maxY = y;
         }
     }
-    let map = [];
-    for(var y=0; y<maxY; y++){
-        let row = [];
-        for(var x=0; x<maxX; x++){
-            row[x] = calculateClosestPoint(x, y, cordinates);
-        }
-        map[y] = row;
+    let plotSizes = [];
+    for(let i=0; i<coordinates.length; i++){
+        plotSizes[i] = 0;
     }
-    let infinatePlots = [];
-    for(let i= 0; i<map.length; i++){
-        if(!infinatePlots.includes(map[i][0])){
-            infinatePlots.push(map[i][0]);
-        }
-        if(!infinatePlots.includes(map[i][map[i].length -1])){
-            infinatePlots.push(map[i][map[i].length -1]);
-        }
-    }
-    for(let i=0; i<map[0].length; i++){
-        if(!infinatePlots.includes(map[0][i])){
-            infinatePlots.push(map[0][i]);
-        }
-        if(!infinatePlots.includes(map[map.length - 1][i])){
-            infinatePlots.push(map[map.length - 1][i]);
+    for(let y=0; y<maxY; y++){
+        for(let x=0; x<maxX; x++){
+            let closestPlot = calculateClosestPoint(x, y, coordinates);
+            if(closestPlot !== null){
+                plotSizes[closestPlot] = plotSizes[closestPlot] + 1;
+                // if we are on the edge it is an infinite plot.
+                if(x === 0 || y === 0 || x === maxY -1 || y === maxX -1){
+                    plotSizes[closestPlot] = NaN;
+                }
+            }
         }
     }
-    console.log(infinatePlots);
-    //console.log("Result:" + str.length);
+    console.log(JSON.stringify(plotSizes));
+    let largestPlot = 0;
+    let largestPlotSize = 0;
+    for(let i=0; i<plotSizes.length; i++){
+        if (plotSizes[i] && plotSizes[i] > largestPlotSize){
+            largestPlot = i;
+            largestPlotSize = plotSizes[i];
+        }
+    }
+    console.log("Result:" + plotSizes[largestPlot] + " at coordinate#:" + largestPlot);
 });
 
-function calculateClosestPoint(x, y, cordinates) {
+function calculateClosestPoint(x, y, coordinates) {
     let closest = 0;
     let closestDistance = 
-        getManhattanDistance(x, y, cordinates[0].x, cordinates[0].y);
-    for(let i=1; i<cordinates.length; i++){
-        let cord = cordinates[i];
+        getManhattanDistance(x, y, coordinates[0].x, coordinates[0].y);
+    let countAtDistance = 0;
+    for(let i=1; i<coordinates.length; i++){
+        let cord = coordinates[i];
         let distance = getManhattanDistance(x, y, cord.x, cord.y);
         if(distance < closestDistance){
             closestDistance = distance;
             closest = i;
+            countAtDistance = 0;
+        } else if (distance === closestDistance) {
+            countAtDistance++;
         }
     }
-    return closest;
+    if(countAtDistance > 1){
+        return null;
+    } else {
+        return closest;
+    }
 }
 
 function getManhattanDistance(x1, y1, x2, y2) {
